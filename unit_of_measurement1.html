@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Science Quiz</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f8ff; padding: 20px; }
+    h1 { color: #2e8b57; }
+    .question { margin-bottom: 20px; }
+    button { margin: 5px; padding: 10px 15px; font-size: 16px; }
+    .result { font-weight: bold; margin-top: 10px; }
+    #score { font-size: 18px; font-weight: bold; margin-top: 20px; color: #2e8b57; }
+    #restart { margin-top: 30px; padding: 12px 20px; font-size: 16px; background: #2e8b57; color: white; border: none; cursor: pointer; }
+    #restart:hover { background: #246b45; }
+  </style>
+</head>
+<body>
+  <h1>Science Quiz</h1>
+  <div id="quiz"></div>
+  <div id="score"></div>
+  <button id="restart" style="display:none;">Restart Quiz</button>
+
+  <script>
+    let score = 0;
+    let answered = 0;
+    let questionsData = [];
+
+    // 🔹 STEP 1: Paste your JSON-style questions here
+    // Example format:
+    questionsData = [
+        {
+    "text": "What is the SI unit of length?",
+    "options": ["Meter", "Centimeter", "Kilometer", "Millimeter"],
+    "answer": "Meter"
+  },
+  {
+    "text": "Which instrument is used to measure mass?",
+    "options": ["Thermometer", "Beam balance", "Stopwatch", "Measuring cylinder"],
+    "answer": "Beam balance"
+  },
+  {
+    "text": "How many centimeters are there in 1 meter?",
+    "options": ["10", "100", "1000", "1"],
+    "answer": "100"
+  },
+  {
+    "text": "What is the SI unit of time?",
+    "options": ["Hour", "Minute", "Second", "Day"],
+    "answer": "Second"
+  },
+  {
+    "text": "Which of the following is a unit of mass?",
+    "options": ["Meter", "Second", "Kilogram", "Liter"],
+    "answer": "Kilogram"
+  },
+  {
+    "text": "Which tool is best to measure the length of a notebook?",
+    "options": ["Measuring tape", "Ruler", "Meter rod", "Thermometer"],
+    "answer": "Ruler"
+  },
+  {
+    "text": "What is the SI unit of temperature?",
+    "options": ["Celsius", "Fahrenheit", "Kelvin", "Degree"],
+    "answer": "Kelvin"
+  },
+  {
+    "text": "Which unit is used to measure liquid volume?",
+    "options": ["Kilogram", "Liter", "Meter", "Second"],
+    "answer": "Liter"
+  },
+  {
+    "text": "How many millimeters are there in 1 centimeter?",
+    "options": ["100", "10", "1", "1000"],
+    "answer": "10"
+  },
+  {
+    "text": "Which quantity is measured using a stopwatch?",
+    "options": ["Length", "Mass", "Time", "Temperature"],
+    "answer": "Time"
+  },
+  {
+    "text": "Which of the following is NOT a standard unit?",
+    "options": ["Cubit", "Meter", "Kilogram", "Second"],
+    "answer": "Cubit"
+  },
+  {
+    "text": "What does SI stand for?",
+    "options": ["System of Instruments", "Scientific Index", "International System of Units", "Standard Indian Units"],
+    "answer": "International System of Units"
+  },
+  {
+    "text": "Which unit is suitable to measure the distance between cities?",
+    "options": ["Centimeter", "Meter", "Kilometer", "Millimeter"],
+    "answer": "Kilometer"
+  },
+  {
+    "text": "What is used to measure temperature?",
+    "options": ["Barometer", "Thermometer", "Hygrometer", "Stopwatch"],
+    "answer": "Thermometer"
+  },
+  {
+    "text": "Which of the following is a correct symbol for kilogram?",
+    "options": ["Kg", "KG", "kg", "kG"],
+    "answer": "kg"
+  },
+  {
+    "text": "Which physical quantity is measured in seconds?",
+    "options": ["Speed", "Distance", "Time", "Mass"],
+    "answer": "Time"
+  },
+  {
+    "text": "How many grams are there in 1 kilogram?",
+    "options": ["100", "1000", "10", "500"],
+    "answer": "1000"
+  },
+  {
+    "text": "Which instrument is used to measure liquid volume accurately?",
+    "options": ["Beaker", "Measuring cylinder", "Test tube", "Flask"],
+    "answer": "Measuring cylinder"
+  },
+  {
+    "text": "Which unit is smaller?",
+    "options": ["Meter", "Centimeter", "Kilometer", "Decameter"],
+    "answer": "Centimeter"
+  },
+  {
+    "text": "Which quantity remains the same everywhere?",
+    "options": ["Weight", "Mass", "Force", "Speed"],
+    "answer": "Mass"
+  },
+  {
+    "text": "Which SI unit is written incorrectly?",
+    "options": ["m", "kg", "sec", "K"],
+    "answer": "sec"
+  },
+  {
+    "text": "What is the correct unit for measuring thickness of a sheet of paper?",
+    "options": ["Meter", "Kilometer", "Millimeter", "Centimeter"],
+    "answer": "Millimeter"
+  },
+  {
+    "text": "Which of these is a base quantity?",
+    "options": ["Speed", "Area", "Length", "Volume"],
+    "answer": "Length"
+  },
+  {
+    "text": "What is the SI unit of volume?",
+    "options": ["Liter", "Cubic meter", "Milliliter", "Cubic centimeter"],
+    "answer": "Cubic meter"
+  },
+
+  {
+    "text": "A pencil is 15 cm long. What is its length in meters?",
+    "options": ["0.15 m", "1.5 m", "15 m", "0.015 m"],
+    "answer": "0.15 m"
+  },
+  {
+    "text": "Which instrument can measure very small lengths accurately?",
+    "options": ["Ruler", "Meter rod", "Vernier caliper", "Measuring tape"],
+    "answer": "Vernier caliper"
+  },
+  {
+    "text": "If a class lasts 45 minutes, how many seconds is that?",
+    "options": ["2700", "450", "3000", "3600"],
+    "answer": "2700"
+  },
+  {
+    "text": "Which of the following is a derived unit?",
+    "options": ["Meter", "Second", "Kilogram", "Meter per second"],
+    "answer": "Meter per second"
+  },
+  {
+    "text": "Why is meter used as a standard unit of length?",
+    "options": ["Easy to remember", "Same everywhere", "Very large", "Very small"],
+    "answer": "Same everywhere"
+  },
+  {
+    "text": "Which unit is best to measure the mass of a truck?",
+    "options": ["Gram", "Kilogram", "Milligram", "Ton"],
+    "answer": "Ton"
+  },
+  {
+    "text": "What happens if non-standard units are used for measurement?",
+    "options": ["Accurate results", "Uniform results", "Different results", "Faster results"],
+    "answer": "Different results"
+  },
+  {
+    "text": "Which conversion is correct?",
+    "options": ["1 m = 10 cm", "1 km = 100 m", "1 m = 100 cm", "1 cm = 100 mm"],
+    "answer": "1 m = 100 cm"
+  },
+  {
+    "text": "Which quantity needs the highest precision in a lab experiment?",
+    "options": ["Length", "Time", "Mass", "All of these"],
+    "answer": "All of these"
+  },
+  {
+    "text": "Which unit is commonly used for measuring small quantities of medicine?",
+    "options": ["Kilogram", "Gram", "Milligram", "Ton"],
+    "answer": "Milligram"
+  },
+  {
+    "text": "Why are SI units preferred in science?",
+    "options": ["They are old", "They are simple", "They are accepted worldwide", "They are optional"],
+    "answer": "They are accepted worldwide"
+  },
+  {
+    "text": "Which pair has the same dimension?",
+    "options": ["Speed and velocity", "Mass and weight", "Distance and time", "Volume and area"],
+    "answer": "Speed and velocity"
+  },
+  {
+    "text": "Why is Kelvin used instead of Celsius in scientific calculations?",
+    "options": ["No negative values", "Smaller numbers", "Easier scale", "Short name"],
+    "answer": "No negative values"
+  },
+
+  {
+    "text": "A student measures a desk using handspan. Why is this measurement unreliable?",
+    "options": ["Desk is heavy", "Handspan varies from person to person", "Desk is long", "Handspan is small"],
+    "answer": "Handspan varies from person to person"
+  },
+  {
+    "text": "If two students measure the same rod and get different values, what is the most likely reason?",
+    "options": ["Rod expanded", "Different measuring methods", "Wrong SI unit", "Rod shrank"],
+    "answer": "Different measuring methods"
+  },
+  {
+    "text": "Which situation needs maximum accuracy?",
+    "options": ["Measuring height of a tree", "Buying vegetables", "Scientific experiment", "Walking distance"],
+    "answer": "Scientific experiment"
+  },
+  {
+    "text": "Why is mass considered a better quantity than weight for measurement?",
+    "options": ["Mass changes", "Mass is easier", "Mass is constant everywhere", "Mass is larger"],
+    "answer": "Mass is constant everywhere"
+  },
+  {
+    "text": "Which of the following will give the most precise time measurement?",
+    "options": ["Wall clock", "Watch", "Stopwatch", "Hourglass"],
+    "answer": "Stopwatch"
+  },
+  {
+    "text": "What error occurs if the eye is not placed correctly while reading a scale?",
+    "options": ["Zero error", "Random error", "Parallax error", "Instrument error"],
+    "answer": "Parallax error"
+  },
+  {
+    "text": "Why are base units important?",
+    "options": ["They change frequently", "They define derived units", "They are optional", "They are outdated"],
+    "answer": "They define derived units"
+  },
+  {
+    "text": "Which is the correct SI unit sequence for length, mass, and time?",
+    "options": ["m, kg, s", "cm, g, min", "km, ton, hr", "mm, mg, sec"],
+    "answer": "m, kg, s"
+  }
+    ];
+
+    // 🔹 STEP 2: Shuffle helper
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // 🔹 STEP 3: Render quiz
+    function renderQuiz(questions) {
+      score = 0;
+      answered = 0;
+      const quizDiv = document.getElementById("quiz");
+      quizDiv.innerHTML = "";
+      document.getElementById("score").textContent = "";
+      document.getElementById("restart").style.display = "none";
+
+      questions = shuffle(questions);
+
+      questions.forEach((q, index) => {
+        const container = document.createElement("div");
+        container.className = "question";
+
+        const questionText = document.createElement("p");
+        questionText.textContent = `${index + 1}. ${q.text}`;
+        container.appendChild(questionText);
+
+        const shuffledOptions = shuffle([...q.options]);
+
+        shuffledOptions.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.textContent = opt;
+          btn.onclick = () => {
+            const result = container.querySelector(".result") || document.createElement("p");
+            result.className = "result";
+
+            if (opt === q.answer) {
+              result.textContent = "✅ Correct!";
+              result.style.color = "green";
+              if (!container.dataset.answered) {
+                score++;
+                container.dataset.answered = true;
+              }
+            } else {
+              result.textContent = "❌ Incorrect. Try again!";
+              result.style.color = "red";
+            }
+
+            container.appendChild(result);
+
+            answered++;
+            if (answered === questions.length) {
+              document.getElementById("score").textContent =
+                `Final Score: ${score} / ${questions.length}`;
+              document.getElementById("restart").style.display = "inline-block";
+            }
+          };
+          container.appendChild(btn);
+        });
+
+        quizDiv.appendChild(container);
+      });
+    }
+
+    // 🔹 STEP 4: Initial load
+    renderQuiz(questionsData);
+
+    // 🔹 STEP 5: Restart button
+    document.getElementById("restart").onclick = () => {
+      renderQuiz(questionsData);
+    };
+  </script>
+</body>
+</html>

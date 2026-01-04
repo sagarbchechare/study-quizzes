@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Science Quiz</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h1 {
+      color: #2e8b57;
+      text-align: center;
+    }
+
+    #timerDisplay {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #d9534f;
+      margin: 15px 0;
+      display: none;
+    }
+
+    #startBtn, #endQuizBtn {
+      display: block;
+      margin: 20px auto;
+      padding: 12px 25px;
+      font-size: 18px;
+      background: #2e8b57;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #startBtn:hover, #endQuizBtn:hover {
+      background: #246b45;
+    }
+
+    .question {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .options button {
+      width: 100%;
+      margin: 6px 0;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #ffffff;
+      cursor: pointer;
+    }
+
+    .options button:disabled {
+      background: #e0e0e0;
+      cursor: not-allowed;
+    }
+
+    .result {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    #score {
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
+      color: #2e8b57;
+    }
+
+    #restart {
+      display: none;
+      margin: 30px auto;
+      padding: 12px 20px;
+      font-size: 18px;
+      background: #2e8b57;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 200px;
+      display: block;
+    }
+
+    #restart:hover {
+      background: #246b45;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      .options button { font-size: 15px; padding: 10px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Science Quiz</h1>
+
+  <button id="startBtn">Start Quiz</button>
+
+  <div id="timerDisplay">⏳ Time: 00:00:00</div>
+
+  <button id="endQuizBtn" style="display:none;">End Quiz</button>
+
+  <div id="quiz"></div>
+  <div id="score"></div>
+
+  <button id="restart" style="display:none;">Restart Quiz</button>
+
+
+  <script>
+    let score = 0;
+    let answered = 0;
+    let quizStartTime = 0;
+    let timerInterval;
+
+    const questionsData = [
+      {
+    "text": "What is the smallest particle of an element that keeps its properties?",
+    "options": ["Molecule", "Atom", "Compound", "Mixture"],
+    "answer": "Atom",
+    "explanation": "An atom is the basic unit of an element that retains its chemical properties."
+  },
+  {
+    "text": "Which of these is always made up of only one kind of atom?",
+    "options": ["Element", "Compound", "Mixture", "Solution"],
+    "answer": "Element",
+    "explanation": "An element is a pure substance that contains only one kind of atom."
+  },
+  {
+    "text": "Which of these is a compound?",
+    "options": ["Iron", "Oxygen gas", "Water", "Gold"],
+    "answer": "Water",
+    "explanation": "Water is made of hydrogen and oxygen chemically combined in a fixed ratio, so it is a compound."
+  },
+  {
+    "text": "Which of these is a mixture?",
+    "options": ["Carbon dioxide", "Common salt (NaCl)", "Air", "Water"],
+    "answer": "Air",
+    "explanation": "Air is a mixture of several gases like nitrogen, oxygen, carbon dioxide and others in variable proportions."
+  },
+  {
+    "text": "What is a molecule?",
+    "options": [
+      "A negatively charged particle",
+      "A small stone",
+      "The smallest unit of an element or compound that can exist independently",
+      "A mixture of two solids"
+    ],
+    "answer": "The smallest unit of an element or compound that can exist independently",
+    "explanation": "A molecule is the smallest particle of an element or compound that can exist independently and shows all its properties."
+  },
+  {
+    "text": "Which of these is a molecule of an element?",
+    "options": ["H2O", "CO2", "O2", "NaCl"],
+    "answer": "O2",
+    "explanation": "O2 is made of two oxygen atoms only, so it is a molecule of the element oxygen."
+  },
+  {
+    "text": "Which of these is a molecule of a compound?",
+    "options": ["O2", "N2", "H2", "CO2"],
+    "answer": "CO2",
+    "explanation": "CO2 has carbon and oxygen atoms chemically combined, so it is a molecule of a compound."
+  },
+  {
+    "text": "What type of substance is copper metal?",
+    "options": ["Element", "Compound", "Mixture", "Solution"],
+    "answer": "Element",
+    "explanation": "Copper contains only copper atoms, so it is an element."
+  },
+  {
+    "text": "When iron filings and sulphur powder are just mixed together, what is formed?",
+    "options": ["Element", "Compound", "Mixture", "Molecule"],
+    "answer": "Mixture",
+    "explanation": "Simply mixing iron and sulphur without heating gives a physical combination called a mixture."
+  },
+  {
+    "text": "Which statement is true for a compound?",
+    "options": [
+      "Its components can be in any ratio",
+      "Its components are combined in a fixed ratio",
+      "It can be separated by filtration only",
+      "It is always a gas"
+    ],
+    "answer": "Its components are combined in a fixed ratio",
+    "explanation": "Elements in a compound are always combined in a fixed, definite ratio by mass."
+  },
+  {
+    "text": "Sea water is best described as:",
+    "options": ["Element", "Compound", "Mixture", "Molecule"],
+    "answer": "Mixture",
+    "explanation": "Sea water contains water, salts and gases mixed in variable proportions, so it is a mixture."
+  },
+  {
+    "text": "Which of the following is NOT a characteristic of a mixture?",
+    "options": [
+      "Components can be in any proportion",
+      "Components retain their own properties",
+      "It has a fixed melting point",
+      "Components can often be separated by physical methods"
+    ],
+    "answer": "It has a fixed melting point",
+    "explanation": "Mixtures do not have sharp, fixed melting or boiling points."
+  },
+  {
+    "text": "Which mixture is homogeneous?",
+    "options": [
+      "Sand and iron filings",
+      "Oil and water",
+      "Salt dissolved in water",
+      "Sand and stones"
+    ],
+    "answer": "Salt dissolved in water",
+    "explanation": "Salt solution has the same composition throughout, making it a homogeneous mixture."
+  },
+  {
+    "text": "Which mixture is heterogeneous?",
+    "options": [
+      "Air",
+      "Sugar solution",
+      "Brass",
+      "Sand in water"
+    ],
+    "answer": "Sand in water",
+    "explanation": "In sand and water, particles of sand are visible and not evenly distributed, so it is heterogeneous."
+  },
+  {
+    "text": "What is the correct description of an element?",
+    "options": [
+      "A substance made of different kinds of atoms",
+      "A substance made of only one kind of atom",
+      "A mixture of metals",
+      "A substance that can be separated by physical methods"
+    ],
+    "answer": "A substance made of only one kind of atom",
+    "explanation": "By definition, an element consists of only one type of atom."
+  },
+  {
+    "text": "In which of the following do the components lose their own properties?",
+    "options": ["Mixture", "Element", "Compound", "Solution"],
+    "answer": "Compound",
+    "explanation": "In a compound, the elements combine chemically and do not retain their original properties."
+  },
+  {
+    "text": "Which of the following is a correct pair?",
+    "options": [
+      "Element – Air",
+      "Compound – Carbon dioxide",
+      "Mixture – Distilled water",
+      "Element – Common salt"
+    ],
+    "answer": "Compound – Carbon dioxide",
+    "explanation": "Carbon dioxide is a compound of carbon and oxygen in a fixed ratio."
+  },
+  {
+    "text": "What happens to the identity of substances in a mixture?",
+    "options": [
+      "They form new substances",
+      "They lose all their properties",
+      "They keep their own identities",
+      "They turn into elements"
+    ],
+    "answer": "They keep their own identities",
+    "explanation": "In a mixture, each component retains its own properties and identity."
+  },
+  {
+    "text": "Which of the following is an example of a solution?",
+    "options": [
+      "Milk",
+      "Smoke",
+      "Brass",
+      "Salt in water"
+    ],
+    "answer": "Salt in water",
+    "explanation": "Salt in water is a solid dissolved evenly in a liquid, forming a solution."
+  },
+  {
+    "text": "Which of these is a correct example of a molecule of a compound?",
+    "options": ["O3", "N2", "H2O", "He"],
+    "answer": "H2O",
+    "explanation": "H2O has two hydrogen atoms and one oxygen atom chemically bonded, so it is a molecule of a compound."
+  },
+  {
+    "text": "Which feature is common to both elements and compounds but NOT to mixtures?",
+    "options": [
+      "They are pure substances",
+      "They can be separated easily by physical methods",
+      "Their composition can vary",
+      "They always contain two or more substances"
+    ],
+    "answer": "They are pure substances",
+    "explanation": "Elements and compounds are pure substances with uniform composition, unlike mixtures."
+  },
+  {
+    "text": "Hydrogen gas (H2) is best described as:",
+    "options": [
+      "An atom",
+      "A molecule of an element",
+      "A molecule of a compound",
+      "A mixture"
+    ],
+    "answer": "A molecule of an element",
+    "explanation": "H2 has two atoms of hydrogen only, so it is a molecule of the element hydrogen."
+  },
+  {
+    "text": "Which statement explains why air is called a mixture and not a compound?",
+    "options": [
+      "Its components are present in a fixed ratio",
+      "Its components can be separated only by chemical methods",
+      "Its components retain their own properties and their ratio can vary",
+      "It contains only one kind of gas"
+    ],
+    "answer": "Its components retain their own properties and their ratio can vary",
+    "explanation": "In air, gases retain their properties and their proportions can change, showing it is a mixture."
+  },
+  {
+    "text": "Why is water considered a compound and not a mixture?",
+    "options": [
+      "It contains only one kind of atom",
+      "Its composition (H and O) is fixed in a definite ratio",
+      "It can be separated by filtration",
+      "It is always a liquid"
+    ],
+    "answer": "Its composition (H and O) is fixed in a definite ratio",
+    "explanation": "In water, hydrogen and oxygen are chemically combined in a fixed 2:1 ratio, so it is a compound."
+  },
+  {
+    "text": "A student stirs iron filings into water. What type of matter is obtained?",
+    "options": ["Element", "Compound", "Homogeneous mixture", "Heterogeneous mixture"],
+    "answer": "Heterogeneous mixture",
+    "explanation": "Iron filings remain separate and visible in water, forming a heterogeneous mixture."
+  },
+  {
+    "text": "Which of the following shows increasing complexity of matter correctly?",
+    "options": [
+      "Molecule → Atom → Compound",
+      "Atom → Molecule → Compound",
+      "Compound → Atom → Molecule",
+      "Mixture → Atom → Molecule"
+    ],
+    "answer": "Atom → Molecule → Compound",
+    "explanation": "Atoms combine to form molecules, and molecules of different elements combine to form compounds."
+  },
+  {
+    "text": "Which description correctly matches the term 'molecule of an element'?",
+    "options": [
+      "Two or more different atoms combined chemically",
+      "Two or more same atoms combined chemically",
+      "A single atom only",
+      "Any mixture of atoms"
+    ],
+    "answer": "Two or more same atoms combined chemically",
+    "explanation": "In a molecule of an element, all atoms are of the same element, like O2 or N2."
+  },
+  {
+    "text": "A liquid contains only one type of molecule throughout and has a sharp boiling point. What is it most likely to be?",
+    "options": ["Mixture", "Solution", "Pure substance", "Heterogeneous mixture"],
+    "answer": "Pure substance",
+    "explanation": "A sharp boiling point and uniform composition indicate a pure substance (element or compound)."
+  },
+  {
+    "text": "Which change clearly shows that a new compound has formed instead of just a mixture?",
+    "options": [
+      "Two solids are mixed and can be separated by a magnet",
+      "Salt is dissolved in water and then recovered by evaporation",
+      "Iron and sulphur are heated strongly to form a substance that is not attracted by a magnet",
+      "Water is cooled to form ice"
+    ],
+    "answer": "Iron and sulphur are heated strongly to form a substance that is not attracted by a magnet",
+    "explanation": "Heating iron and sulphur forms iron sulphide, a new compound with properties different from both iron and sulphur."
+  },
+  {
+    "text": "Why does a compound like water have properties very different from hydrogen and oxygen?",
+    "options": [
+      "Because it is a mixture of gases",
+      "Because atoms in a compound lose their identities and form a new substance",
+      "Because it contains only one type of atom",
+      "Because its components are in any ratio"
+    ],
+    "answer": "Because atoms in a compound lose their identities and form a new substance",
+    "explanation": "In a compound, atoms combine chemically so the new substance has its own distinct properties, different from the original elements."
+  }
+    ];
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor((i + 1) * Math.random());
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    document.getElementById("startBtn").onclick = startQuiz;
+    document.getElementById("endQuizBtn").onclick = endQuiz;
+    document.getElementById("restart").onclick = restartQuiz;
+
+    function startQuiz() {
+      document.getElementById("startBtn").style.display = "none";
+      document.getElementById("endQuizBtn").style.display = "block";
+      document.getElementById("timerDisplay").style.display = "block";
+
+      renderQuiz(questionsData);
+    }
+
+    function endQuiz() {
+      clearInterval(timerInterval);
+
+      document.getElementById("quiz").innerHTML = "";
+      document.getElementById("score").innerHTML = "";
+      document.getElementById("timerDisplay").style.display = "none";
+      document.getElementById("endQuizBtn").style.display = "none";
+      document.getElementById("restart").style.display = "none";
+      document.getElementById("startBtn").style.display = "block";
+    }
+
+    function restartQuiz() {
+      renderQuiz(questionsData);
+      document.getElementById("restart").style.display = "none";
+      document.getElementById("score").innerHTML = "";
+    }
+
+    function renderQuiz(questions) {
+      score = 0;
+      answered = 0;
+
+      const quizDiv = document.getElementById("quiz");
+      quizDiv.innerHTML = "";
+
+      quizStartTime = Date.now();
+      startGlobalTimer();
+
+      questions = shuffle([...questions]);
+
+      questions.forEach((q, index) => {
+        const container = document.createElement("div");
+        container.className = "question";
+
+        const questionText = document.createElement("p");
+        questionText.textContent = `${index + 1}. ${q.text}`;
+        container.appendChild(questionText);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "options";
+
+        const shuffledOptions = shuffle([...q.options]);
+
+        shuffledOptions.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.textContent = opt;
+
+          btn.onclick = () => {
+            lockQuestion(container, q, opt, btn);
+          };
+
+          optionsDiv.appendChild(btn);
+        });
+
+        container.appendChild(optionsDiv);
+        quizDiv.appendChild(container);
+      });
+    }
+
+    function startGlobalTimer() {
+      clearInterval(timerInterval);
+
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - quizStartTime) / 1000);
+
+        const hrs = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+        const secs = String(elapsed % 60).padStart(2, '0');
+
+        document.getElementById("timerDisplay").textContent =
+          `⏳ Time: ${hrs}:${mins}:${secs}`;
+      }, 1000);
+    }
+
+    function lockQuestion(container, question, selected, selectedBtn) {
+      if (container.dataset.answered) return;
+      container.dataset.answered = true;
+
+      const buttons = container.querySelectorAll("button");
+
+      selectedBtn.style.background = "#007bff";
+      selectedBtn.style.color = "white";
+
+      buttons.forEach(btn => btn.disabled = true);
+
+      const result = document.createElement("p");
+      result.className = "result";
+
+      if (selected === question.answer) {
+        result.textContent = `✅ Correct!`;
+        result.style.color = "green";
+        score++;
+      } else {
+        result.textContent = `❌ Incorrect.`;
+        result.style.color = "red";
+      }
+
+      buttons.forEach(btn => {
+        if (btn.textContent === question.answer) {
+          btn.style.background = "#28a745";
+          btn.style.color = "white";
+        }
+      });
+
+      const explanation = document.createElement("p");
+      explanation.innerHTML = `<strong>Correct Answer:</strong> ${question.answer}<br>
+                               <strong>Explanation:</strong> ${question.explanation}`;
+
+      container.appendChild(result);
+      container.appendChild(explanation);
+
+      answered++;
+
+      if (answered === questionsData.length) {
+        clearInterval(timerInterval);
+
+        const totalTime = Math.floor((Date.now() - quizStartTime) / 1000);
+        const hrs = String(Math.floor(totalTime / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((totalTime % 3600) / 60)).padStart(2, '0');
+        const secs = String(totalTime % 60).padStart(2, '0');
+
+        document.getElementById("score").textContent =
+          `Final Score: ${score} / ${questionsData.length}  
+           Total Time Taken: ${hrs}:${mins}:${secs}`;
+
+        document.getElementById("restart").style.display = "block";
+      }
+    }
+  </script>
+
+</body>
+</html>

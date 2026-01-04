@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Science Quiz</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h1 {
+      color: #2e8b57;
+      text-align: center;
+    }
+
+    #timerDisplay {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #d9534f;
+      margin: 15px 0;
+      display: none;
+    }
+
+    #startBtn, #endQuizBtn {
+      display: block;
+      margin: 20px auto;
+      padding: 12px 25px;
+      font-size: 18px;
+      background: #2e8b57;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #startBtn:hover, #endQuizBtn:hover {
+      background: #246b45;
+    }
+
+    .question {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .options button {
+      width: 100%;
+      margin: 6px 0;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #ffffff;
+      cursor: pointer;
+    }
+
+    .options button:disabled {
+      background: #e0e0e0;
+      cursor: not-allowed;
+    }
+
+    .result {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    #score {
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
+      color: #2e8b57;
+    }
+
+    #restart {
+      display: none;
+      margin: 30px auto;
+      padding: 12px 20px;
+      font-size: 18px;
+      background: #2e8b57;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 200px;
+      display: block;
+    }
+
+    #restart:hover {
+      background: #246b45;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      .options button { font-size: 15px; padding: 10px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Science Quiz</h1>
+
+  <button id="startBtn">Start Quiz</button>
+
+  <div id="timerDisplay">⏳ Time: 00:00:00</div>
+
+  <button id="endQuizBtn" style="display:none;">End Quiz</button>
+
+  <div id="quiz"></div>
+  <div id="score"></div>
+
+  <button id="restart" style="display:none;">Restart Quiz</button>
+
+
+  <script>
+    let score = 0;
+    let answered = 0;
+    let quizStartTime = 0;
+    let timerInterval;
+
+    const questionsData = [
+        {
+    "text": "What is the smallest particle of an element that keeps its properties?",
+    "options": ["Molecule", "Atom", "Compound", "Mixture"],
+    "answer": "Atom",
+    "explanation": "An atom is the basic unit of an element that retains its chemical properties."
+  },
+  {
+    "text": "Which of the following is a compound?",
+    "options": ["Oxygen", "Water", "Iron", "Nitrogen"],
+    "answer": "Water",
+    "explanation": "Water (H2O) is made of hydrogen and oxygen chemically combined."
+  },
+  {
+    "text": "Which of the following is a mixture?",
+    "options": ["Salt", "Air", "Carbon dioxide", "Sugar"],
+    "answer": "Air",
+    "explanation": "Air is a mixture of gases like oxygen, nitrogen, and carbon dioxide."
+  },
+  {
+    "text": "Which particle is made of protons, neutrons, and electrons?",
+    "options": ["Atom", "Molecule", "Compound", "Mixture"],
+    "answer": "Atom",
+    "explanation": "Atoms are made up of protons, neutrons, and electrons."
+  },
+  {
+    "text": "Which of the following is an element?",
+    "options": ["Hydrogen", "Water", "Salt", "Sugar"],
+    "answer": "Hydrogen",
+    "explanation": "Hydrogen is a pure element consisting of only hydrogen atoms."
+  },
+  {
+    "text": "Which of the following is a homogeneous mixture?",
+    "options": ["Saltwater", "Sand and iron", "Oil and water", "Fruit salad"],
+    "answer": "Saltwater",
+    "explanation": "Saltwater has the same composition throughout, making it homogeneous."
+  },
+  {
+    "text": "Which of the following is a heterogeneous mixture?",
+    "options": ["Air", "Vinegar", "Sand and water", "Sugar solution"],
+    "answer": "Sand and water",
+    "explanation": "The components in sand and water are not uniformly mixed, so it is heterogeneous."
+  },
+  {
+    "text": "Which of the following is formed by chemical combination?",
+    "options": ["Mixture", "Compound", "Element", "Alloy"],
+    "answer": "Compound",
+    "explanation": "Compounds are formed when two or more elements chemically combine."
+  },
+  {
+    "text": "Which of these is not an element?",
+    "options": ["Iron", "Oxygen", "Water", "Gold"],
+    "answer": "Water",
+    "explanation": "Water is a compound made of hydrogen and oxygen."
+  },
+  {
+    "text": "What type of mixture is sand in water?",
+    "options": ["Homogeneous", "Heterogeneous", "Compound", "Element"],
+    "answer": "Heterogeneous",
+    "explanation": "Sand does not dissolve in water, so the mixture is heterogeneous."
+  },
+  {
+    "text": "Which of the following is a chemical change?",
+    "options": ["Melting ice", "Rusting iron", "Breaking chalk", "Boiling water"],
+    "answer": "Rusting iron",
+    "explanation": "Rusting changes iron into a new substance, iron oxide."
+  },
+  {
+    "text": "Which of the following is a physical change?",
+    "options": ["Burning paper", "Melting wax", "Cooking food", "Baking cake"],
+    "answer": "Melting wax",
+    "explanation": "Melting wax changes its state but not its chemical composition."
+  },
+  {
+    "text": "Which particle combination forms a molecule?",
+    "options": ["Atoms", "Elements", "Mixtures", "Compounds"],
+    "answer": "Atoms",
+    "explanation": "Molecules are made when two or more atoms combine chemically."
+  },
+  {
+    "text": "Which of the following is a diatomic element?",
+    "options": ["Oxygen", "Water", "Carbon dioxide", "Sodium"],
+    "answer": "Oxygen",
+    "explanation": "Oxygen exists naturally as O2, a diatomic molecule."
+  },
+  {
+    "text": "Which of these can be separated by physical methods?",
+    "options": ["Saltwater", "Water", "Carbon dioxide", "Sugar"],
+    "answer": "Saltwater",
+    "explanation": "Salt can be separated from water by evaporation or filtration."
+  },
+  {
+    "text": "Which of the following is true about elements?",
+    "options": ["Can be broken into simpler substances", "Made of one type of atom", "Always liquid", "Always mixed"],
+    "answer": "Made of one type of atom",
+    "explanation": "Elements are made of only one kind of atom."
+  },
+  {
+    "text": "Which of the following is not a mixture?",
+    "options": ["Air", "Salt", "Trail mix", "Vegetable soup"],
+    "answer": "Salt",
+    "explanation": "Salt is a compound, not a mixture."
+  },
+  {
+    "text": "Which of the following is a solution?",
+    "options": ["Sugar in water", "Oil in water", "Sand in water", "Salt and pepper"],
+    "answer": "Sugar in water",
+    "explanation": "Sugar dissolves completely in water, forming a solution."
+  },
+  {
+    "text": "Which of the following is a pure substance?",
+    "options": ["Water", "Air", "Soil", "Juice"],
+    "answer": "Water",
+    "explanation": "Water is chemically uniform and pure."
+  },
+  {
+    "text": "Which of the following shows a chemical reaction?",
+    "options": ["Boiling water", "Rusting nail", "Melting ice", "Crushing stone"],
+    "answer": "Rusting nail",
+    "explanation": "Rusting changes the composition of the metal, so it is a chemical reaction."
+  },
+  {
+    "text": "Which of the following cannot be broken down chemically?",
+    "options": ["Water", "Air", "Element", "Salt"],
+    "answer": "Element",
+    "explanation": "Elements are basic substances and cannot be broken down further chemically."
+  },
+  {
+    "text": "Which is an example of a mixture of solids?",
+    "options": ["Sand and sugar", "Sugar and water", "Air and dust", "Oil and water"],
+    "answer": "Sand and sugar",
+    "explanation": "Both sand and sugar are solids and form a heterogeneous mixture."
+  },
+  {
+    "text": "Which is an example of a solution of gas in gas?",
+    "options": ["Air", "Oxygen in water", "Carbon dioxide in soda", "Smoke in air"],
+    "answer": "Air",
+    "explanation": "Air is a homogeneous mixture of gases like oxygen and nitrogen."
+  },
+  {
+    "text": "Which of the following is a chemical compound?",
+    "options": ["Water", "Iron", "Air", "Sand"],
+    "answer": "Water",
+    "explanation": "Water is a compound formed from hydrogen and oxygen."
+  },
+  {
+    "text": "Which of the following is a physical mixture of liquids?",
+    "options": ["Oil and water", "Salt in water", "Sugar in water", "Water and alcohol"],
+    "answer": "Water and alcohol",
+    "explanation": "Water and alcohol mix uniformly without chemical change, forming a physical mixture."
+  },
+  {
+    "text": "Which of the following is an element in periodic table?",
+    "options": ["Hydrogen", "Water", "Salt", "Sugar"],
+    "answer": "Hydrogen",
+    "explanation": "Hydrogen is a basic element represented in the periodic table."
+  },
+  {
+    "text": "Which of the following can be separated by filtration?",
+    "options": ["Sand in water", "Saltwater", "Sugar solution", "Air"],
+    "answer": "Sand in water",
+    "explanation": "Sand is insoluble and can be separated from water using filtration."
+  },
+  {
+    "text": "Which of the following contains only one type of particle?",
+    "options": ["Element", "Mixture", "Compound", "Solution"],
+    "answer": "Element",
+    "explanation": "An element has only one kind of atom throughout."
+  },
+  {
+    "text": "Which of the following is an example of a homogeneous mixture?",
+    "options": ["Milk", "Sand and water", "Trail mix", "Vegetable soup"],
+    "answer": "Milk",
+    "explanation": "Milk appears uniform throughout and is considered homogeneous."
+  },
+  {
+    "text": "Which of these is formed by physical combination?",
+    "options": ["Mixture", "Compound", "Salt", "Water"],
+    "answer": "Mixture",
+    "explanation": "Mixtures are formed when substances combine physically, not chemically."
+  },
+  {
+    "text": "Which of the following can exist as a single atom naturally?",
+    "options": ["Helium", "Oxygen", "Nitrogen", "Hydrogen"],
+    "answer": "Helium",
+    "explanation": "Helium is a noble gas that exists as single atoms naturally."
+  },
+  {
+    "text": "Which of the following is a ternary compound?",
+    "options": ["NaHCO3", "H2O", "CO2", "O2"],
+    "answer": "NaHCO3",
+    "explanation": "NaHCO3 contains three elements: sodium, hydrogen, and carbon."
+  },
+  {
+    "text": "Which of these mixtures is uniform in composition?",
+    "options": ["Saltwater", "Trail mix", "Sand and water", "Oil and water"],
+    "answer": "Saltwater",
+    "explanation": "Saltwater is uniform throughout, so it is homogeneous."
+  },
+  {
+    "text": "Which of the following is an element but not a metal?",
+    "options": ["Oxygen", "Iron", "Copper", "Gold"],
+    "answer": "Oxygen",
+    "explanation": "Oxygen is a non-metal element."
+  },
+  {
+    "text": "Which of the following cannot be separated by physical methods?",
+    "options": ["Salt and water solution", "Iron filings and sand", "Oil and water", "Hydrogen and oxygen in water"],
+    "answer": "Hydrogen and oxygen in water",
+    "explanation": "Water is a compound, and hydrogen and oxygen are chemically bonded; physical separation is not possible."
+  },
+  {
+    "text": "Which of the following is an example of a heterogeneous mixture of liquids?",
+    "options": ["Oil and water", "Salt solution", "Sugar in water", "Alcohol and water"],
+    "answer": "Oil and water",
+    "explanation": "Oil and water do not mix uniformly, so the mixture is heterogeneous."
+  }
+    ];
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor((i + 1) * Math.random());
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    document.getElementById("startBtn").onclick = startQuiz;
+    document.getElementById("endQuizBtn").onclick = endQuiz;
+    document.getElementById("restart").onclick = restartQuiz;
+
+    function startQuiz() {
+      document.getElementById("startBtn").style.display = "none";
+      document.getElementById("endQuizBtn").style.display = "block";
+      document.getElementById("timerDisplay").style.display = "block";
+
+      renderQuiz(questionsData);
+    }
+
+    function endQuiz() {
+      clearInterval(timerInterval);
+
+      document.getElementById("quiz").innerHTML = "";
+      document.getElementById("score").innerHTML = "";
+      document.getElementById("timerDisplay").style.display = "none";
+      document.getElementById("endQuizBtn").style.display = "none";
+      document.getElementById("restart").style.display = "none";
+      document.getElementById("startBtn").style.display = "block";
+    }
+
+    function restartQuiz() {
+      renderQuiz(questionsData);
+      document.getElementById("restart").style.display = "none";
+      document.getElementById("score").innerHTML = "";
+    }
+
+    function renderQuiz(questions) {
+      score = 0;
+      answered = 0;
+
+      const quizDiv = document.getElementById("quiz");
+      quizDiv.innerHTML = "";
+
+      quizStartTime = Date.now();
+      startGlobalTimer();
+
+      questions = shuffle([...questions]);
+
+      questions.forEach((q, index) => {
+        const container = document.createElement("div");
+        container.className = "question";
+
+        const questionText = document.createElement("p");
+        questionText.textContent = `${index + 1}. ${q.text}`;
+        container.appendChild(questionText);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "options";
+
+        const shuffledOptions = shuffle([...q.options]);
+
+        shuffledOptions.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.textContent = opt;
+
+          btn.onclick = () => {
+            lockQuestion(container, q, opt, btn);
+          };
+
+          optionsDiv.appendChild(btn);
+        });
+
+        container.appendChild(optionsDiv);
+        quizDiv.appendChild(container);
+      });
+    }
+
+    function startGlobalTimer() {
+      clearInterval(timerInterval);
+
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - quizStartTime) / 1000);
+
+        const hrs = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+        const secs = String(elapsed % 60).padStart(2, '0');
+
+        document.getElementById("timerDisplay").textContent =
+          `⏳ Time: ${hrs}:${mins}:${secs}`;
+      }, 1000);
+    }
+
+    function lockQuestion(container, question, selected, selectedBtn) {
+      if (container.dataset.answered) return;
+      container.dataset.answered = true;
+
+      const buttons = container.querySelectorAll("button");
+
+      selectedBtn.style.background = "#007bff";
+      selectedBtn.style.color = "white";
+
+      buttons.forEach(btn => btn.disabled = true);
+
+      const result = document.createElement("p");
+      result.className = "result";
+
+      if (selected === question.answer) {
+        result.textContent = `✅ Correct!`;
+        result.style.color = "green";
+        score++;
+      } else {
+        result.textContent = `❌ Incorrect.`;
+        result.style.color = "red";
+      }
+
+      buttons.forEach(btn => {
+        if (btn.textContent === question.answer) {
+          btn.style.background = "#28a745";
+          btn.style.color = "white";
+        }
+      });
+
+      const explanation = document.createElement("p");
+      explanation.innerHTML = `<strong>Correct Answer:</strong> ${question.answer}<br>
+                               <strong>Explanation:</strong> ${question.explanation}`;
+
+      container.appendChild(result);
+      container.appendChild(explanation);
+
+      answered++;
+
+      if (answered === questionsData.length) {
+        clearInterval(timerInterval);
+
+        const totalTime = Math.floor((Date.now() - quizStartTime) / 1000);
+        const hrs = String(Math.floor(totalTime / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((totalTime % 3600) / 60)).padStart(2, '0');
+        const secs = String(totalTime % 60).padStart(2, '0');
+
+        document.getElementById("score").textContent =
+          `Final Score: ${score} / ${questionsData.length}  
+           Total Time Taken: ${hrs}:${mins}:${secs}`;
+
+        document.getElementById("restart").style.display = "block";
+      }
+    }
+  </script>
+
+</body>
+</html>
