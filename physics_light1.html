@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Science Quiz</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h1 {
+      color: #2e8b57;
+      text-align: center;
+    }
+
+    #timerDisplay {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #d9534f;
+      margin: 15px 0;
+      display: none;
+    }
+
+    #startBtn, #endQuizBtn {
+      display: block;
+      margin: 20px auto;
+      padding: 12px 25px;
+      font-size: 18px;
+      background: #2e8b57;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #startBtn:hover, #endQuizBtn:hover {
+      background: #246b45;
+    }
+
+    .question {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .options button {
+      width: 100%;
+      margin: 6px 0;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #ffffff;
+      cursor: pointer;
+    }
+
+    .options button:disabled {
+      background: #e0e0e0;
+      cursor: not-allowed;
+    }
+
+    .result {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    #score {
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
+      color: #2e8b57;
+    }
+
+    #restart {
+      display: none;
+      margin: 30px auto;
+      padding: 12px 20px;
+      font-size: 18px;
+      background: #2e8b57;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 200px;
+      display: block;
+    }
+
+    #restart:hover {
+      background: #246b45;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      .options button { font-size: 15px; padding: 10px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Science Quiz</h1>
+
+  <button id="startBtn">Start Quiz</button>
+
+  <div id="timerDisplay">⏳ Time: 00:00:00</div>
+
+  <button id="endQuizBtn" style="display:none;">End Quiz</button>
+
+  <div id="quiz"></div>
+  <div id="score"></div>
+
+  <button id="restart" style="display:none;">Restart Quiz</button>
+
+
+  <script>
+    let score = 0;
+    let answered = 0;
+    let quizStartTime = 0;
+    let timerInterval;
+
+    const questionsData = [
+      {
+    "text": "Light travels in which type of path?",
+    "options": ["Curved lines", "Straight lines", "Zigzag lines", "Circular paths"],
+    "answer": "Straight lines",
+    "explanation": "Light travels in straight lines, which is called rectilinear propagation of light. This is why we see sharp shadows."
+  },
+  {
+    "text": "Which of the following is a luminous object?",
+    "options": ["Moon", "Mirror", "Sun", "Book"],
+    "answer": "Sun",
+    "explanation": "Luminous objects emit their own light. The Sun produces its own light through nuclear fusion, while the Moon only reflects sunlight."
+  },
+  {
+    "text": "A shadow is formed when light is:",
+    "options": ["Reflected by an object", "Blocked by an opaque object", "Refracted by an object", "Absorbed completely"],
+    "answer": "Blocked by an opaque object",
+    "explanation": "Shadows form when an opaque object blocks the path of light, preventing it from reaching a surface."
+  },
+  {
+    "text": "Which material allows light to pass through it completely?",
+    "options": ["Opaque", "Translucent", "Transparent", "Reflective"],
+    "answer": "Transparent",
+    "explanation": "Transparent materials like clear glass and water allow light to pass through completely, making objects visible through them."
+  },
+  {
+    "text": "The image formed by a plane mirror is:",
+    "options": ["Real and inverted", "Virtual and erect", "Real and erect", "Virtual and inverted"],
+    "answer": "Virtual and erect",
+    "explanation": "A plane mirror forms a virtual image that is upright (erect) and appears to be behind the mirror at the same distance as the object is in front."
+  },
+  {
+    "text": "What happens when light falls on a smooth polished surface?",
+    "options": ["Absorption", "Regular reflection", "Diffuse reflection", "Refraction"],
+    "answer": "Regular reflection",
+    "explanation": "Smooth polished surfaces like mirrors produce regular reflection where parallel rays of light reflect in a single direction."
+  },
+  {
+    "text": "Which of these is a non-luminous object?",
+    "options": ["Candle flame", "Electric bulb", "Torch", "Wall"],
+    "answer": "Wall",
+    "explanation": "Non-luminous objects do not emit their own light. A wall only becomes visible when light from other sources falls on it and reflects."
+  },
+  {
+    "text": "The splitting of white light into seven colors is called:",
+    "options": ["Reflection", "Dispersion", "Absorption", "Diffraction"],
+    "answer": "Dispersion",
+    "explanation": "Dispersion is the phenomenon where white light separates into its constituent colors (VIBGYOR) when passing through a prism."
+  },
+  {
+    "text": "A pinhole camera forms an image that is:",
+    "options": ["Erect and enlarged", "Inverted and smaller", "Erect and smaller", "Inverted and enlarged"],
+    "answer": "Inverted and smaller",
+    "explanation": "A pinhole camera works on the principle that light travels in straight lines, forming an inverted and diminished image on the screen."
+  },
+  {
+    "text": "Which surface will produce diffuse reflection?",
+    "options": ["Plane mirror", "Polished metal", "Rough wall", "Still water"],
+    "answer": "Rough wall",
+    "explanation": "Rough surfaces scatter light in different directions, causing diffuse reflection, which allows us to see most objects around us."
+  },
+  {
+    "text": "In a plane mirror, the distance of the object from the mirror is:",
+    "options": ["Greater than the image distance", "Less than the image distance", "Equal to the image distance", "Twice the image distance"],
+    "answer": "Equal to the image distance",
+    "explanation": "In a plane mirror, the image is formed at the same distance behind the mirror as the object is in front of it."
+  },
+  {
+    "text": "Butter paper is an example of a:",
+    "options": ["Transparent material", "Translucent material", "Opaque material", "Luminous material"],
+    "answer": "Translucent material",
+    "explanation": "Translucent materials like butter paper allow some light to pass through but scatter it, making objects appear blurry through them."
+  },
+  {
+    "text": "The phenomenon of light bouncing back from a surface is called:",
+    "options": ["Refraction", "Reflection", "Dispersion", "Absorption"],
+    "answer": "Reflection",
+    "explanation": "Reflection occurs when light rays bounce back from a surface instead of being absorbed or passing through."
+  },
+  {
+    "text": "How many colors are there in the spectrum of white light?",
+    "options": ["Five", "Six", "Seven", "Eight"],
+    "answer": "Seven",
+    "explanation": "White light consists of seven colors: Violet, Indigo, Blue, Green, Yellow, Orange, and Red (VIBGYOR)."
+  },
+  {
+    "text": "The size of a shadow depends on:",
+    "options": ["Color of the object", "Distance between object and light source", "Weight of the object", "Temperature of the object"],
+    "answer": "Distance between object and light source",
+    "explanation": "The size of a shadow varies with the distance between the object and the light source, and between the object and the screen."
+  },
+  {
+    "text": "Which of the following can be used to obtain a spectrum?",
+    "options": ["Plane mirror", "Glass prism", "Concave mirror", "Opaque screen"],
+    "answer": "Glass prism",
+    "explanation": "A glass prism can disperse white light into its constituent colors, forming a spectrum due to different angles of refraction for different colors."
+  },
+  {
+    "text": "The image in a plane mirror is:",
+    "options": ["Laterally inverted", "Vertically inverted", "Both laterally and vertically inverted", "Not inverted at all"],
+    "answer": "Laterally inverted",
+    "explanation": "Lateral inversion means the left side of an object appears as the right side in the mirror image and vice versa."
+  },
+  {
+    "text": "A cardboard piece is an example of:",
+    "options": ["Transparent object", "Translucent object", "Opaque object", "Luminous object"],
+    "answer": "Opaque object",
+    "explanation": "Opaque objects like cardboard do not allow any light to pass through them, forming complete shadows."
+  },
+  {
+    "text": "What is the speed of light in vacuum?",
+    "options": ["3 × 10⁵ km/s", "3 × 10⁸ m/s", "3 × 10⁶ m/s", "3 × 10⁴ km/s"],
+    "answer": "3 × 10⁸ m/s",
+    "explanation": "Light travels at approximately 3 × 10⁸ meters per second (or 300,000 km/s) in vacuum, which is the fastest speed possible."
+  },
+  {
+    "text": "A rainbow is formed due to:",
+    "options": ["Reflection only", "Refraction only", "Dispersion and reflection", "Absorption of light"],
+    "answer": "Dispersion and reflection",
+    "explanation": "Rainbows form when sunlight is dispersed into colors by water droplets, combined with internal reflection within the droplets."
+  },
+  {
+    "text": "The rear-view mirror in vehicles is:",
+    "options": ["Concave mirror", "Convex mirror", "Plane mirror", "Cylindrical mirror"],
+    "answer": "Plane mirror",
+    "explanation": "Most vehicles use plane mirrors as rear-view mirrors because they provide an undistorted image at the actual distance."
+  },
+  {
+    "text": "Which property allows us to see objects?",
+    "options": ["Objects emit light", "Light reflects from objects to our eyes", "Objects absorb all light", "Eyes emit light rays"],
+    "answer": "Light reflects from objects to our eyes",
+    "explanation": "We see non-luminous objects when light from a source falls on them and reflects into our eyes."
+  },
+  {
+    "text": "A solar eclipse occurs when:",
+    "options": ["Earth comes between Sun and Moon", "Moon comes between Sun and Earth", "Sun comes between Earth and Moon", "All three are in a line horizontally"],
+    "answer": "Moon comes between Sun and Earth",
+    "explanation": "A solar eclipse happens when the Moon blocks sunlight by coming between the Sun and Earth, casting a shadow on Earth."
+  },
+  {
+    "text": "A lunar eclipse occurs when:",
+    "options": ["Moon comes between Sun and Earth", "Earth comes between Sun and Moon", "Sun comes between Earth and Moon", "Moon stops emitting light"],
+    "answer": "Earth comes between Sun and Moon",
+    "explanation": "A lunar eclipse occurs when Earth comes between the Sun and Moon, causing Earth's shadow to fall on the Moon."
+  },
+  {
+    "text": "The color of light that bends the least in a prism is:",
+    "options": ["Violet", "Red", "Green", "Blue"],
+    "answer": "Red",
+    "explanation": "Red light has the longest wavelength and bends (refracts) the least when passing through a prism, while violet bends the most."
+  },
+  {
+    "text": "A periscope works on the principle of:",
+    "options": ["Refraction", "Multiple reflections", "Dispersion", "Lateral inversion"],
+    "answer": "Multiple reflections",
+    "explanation": "A periscope uses two plane mirrors placed at 45° angles to reflect light twice, allowing us to see objects that are not in direct line of sight."
+  },
+  {
+    "text": "When light enters from air to water, it:",
+    "options": ["Speeds up", "Slows down", "Maintains same speed", "Stops completely"],
+    "answer": "Slows down",
+    "explanation": "Light travels slower in denser media like water compared to air, which causes refraction or bending of light rays."
+  },
+  {
+    "text": "The umbra region of a shadow is:",
+    "options": ["Partially dark", "Completely dark", "Bright", "Colored"],
+    "answer": "Completely dark",
+    "explanation": "Umbra is the central, darkest part of a shadow where no light reaches. Penumbra is the partially lit region around it."
+  },
+  {
+    "text": "What is the angle of reflection if the angle of incidence is 30°?",
+    "options": ["30°", "60°", "90°", "15°"],
+    "answer": "30°",
+    "explanation": "According to the law of reflection, the angle of incidence is always equal to the angle of reflection."
+  },
+  {
+    "text": "Objects appear colored because they:",
+    "options": ["Emit that color of light", "Reflect that color and absorb others", "Absorb all colors equally", "Refract that color"],
+    "answer": "Reflect that color and absorb others",
+    "explanation": "Objects appear a certain color because they reflect that color of light while absorbing other colors from white light."
+  },
+  {
+    "text": "The phenomenon that allows us to use optical fibers for communication is:",
+    "options": ["Diffuse reflection", "Dispersion", "Total internal reflection", "Lateral inversion"],
+    "answer": "Total internal reflection",
+    "explanation": "Optical fibers use total internal reflection to transmit light signals over long distances with minimal loss."
+  },
+  {
+    "text": "A sheet of glass is:",
+    "options": ["Opaque", "Translucent", "Transparent", "Non-reflective"],
+    "answer": "Transparent",
+    "explanation": "Clear glass is transparent because it allows light to pass through with minimal scattering, making objects clearly visible through it."
+  },
+  {
+    "text": "Which device uses the rectilinear propagation of light?",
+    "options": ["Telescope", "Pinhole camera", "Periscope", "Prism"],
+    "answer": "Pinhole camera",
+    "explanation": "A pinhole camera demonstrates that light travels in straight lines, as the image is formed by light rays passing through a tiny hole."
+  },
+  {
+    "text": "The natural phenomenon that shows dispersion of sunlight is:",
+    "options": ["Lightning", "Aurora", "Rainbow", "Eclipse"],
+    "answer": "Rainbow",
+    "explanation": "A rainbow is a natural spectrum of sunlight formed by dispersion and reflection of light in water droplets in the atmosphere."
+  },
+  {
+    "text": "If you stand in front of two parallel mirrors, you see:",
+    "options": ["One image", "Two images", "Multiple images", "No image"],
+    "answer": "Multiple images",
+    "explanation": "Two parallel mirrors create multiple reflections, producing an infinite number of images, though they become fainter progressively."
+  },
+  {
+    "text": "The angle between the incident ray and the normal is called:",
+    "options": ["Angle of reflection", "Angle of incidence", "Angle of refraction", "Critical angle"],
+    "answer": "Angle of incidence",
+    "explanation": "The angle of incidence is measured between the incident ray and the perpendicular (normal) drawn at the point of incidence."
+  },
+  {
+    "text": "Which of these will cast the sharpest shadow?",
+    "options": ["A large light source close to object", "A small light source far from object", "A point light source close to object", "Multiple light sources"],
+    "answer": "A point light source close to object",
+    "explanation": "A point source of light produces the sharpest shadows with clear umbra region, as all light rays come from a single point."
+  },
+  {
+    "text": "A kaleidoscope works on the principle of:",
+    "options": ["Refraction", "Dispersion", "Multiple reflections", "Single reflection"],
+    "answer": "Multiple reflections",
+    "explanation": "A kaleidoscope uses multiple plane mirrors placed at angles to create beautiful symmetrical patterns through repeated reflections."
+  },
+  {
+    "text": "During a solar eclipse, which shadow of the Moon falls on Earth?",
+    "options": ["Only umbra", "Only penumbra", "Both umbra and penumbra", "Neither umbra nor penumbra"],
+    "answer": "Both umbra and penumbra",
+    "explanation": "During a solar eclipse, the Moon casts both umbra (complete shadow - total eclipse) and penumbra (partial shadow - partial eclipse) on Earth."
+  },
+  {
+    "text": "The word 'AMBULANCE' is written laterally inverted on emergency vehicles because:",
+    "options": ["It looks stylish", "Drivers ahead can read it correctly in their mirrors", "It is an international code", "To save paint"],
+    "answer": "Drivers ahead can read it correctly in their mirrors",
+    "explanation": "Since mirrors laterally invert images, writing AMBULANCE in reverse ensures drivers viewing it in their rear-view mirrors can read it correctly and give way."
+  }
+    ];
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor((i + 1) * Math.random());
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    document.getElementById("startBtn").onclick = startQuiz;
+    document.getElementById("endQuizBtn").onclick = endQuiz;
+    document.getElementById("restart").onclick = restartQuiz;
+
+    function startQuiz() {
+      document.getElementById("startBtn").style.display = "none";
+      document.getElementById("endQuizBtn").style.display = "block";
+      document.getElementById("timerDisplay").style.display = "block";
+
+      renderQuiz(questionsData);
+    }
+
+    function endQuiz() {
+      clearInterval(timerInterval);
+
+      document.getElementById("quiz").innerHTML = "";
+      document.getElementById("score").innerHTML = "";
+      document.getElementById("timerDisplay").style.display = "none";
+      document.getElementById("endQuizBtn").style.display = "none";
+      document.getElementById("restart").style.display = "none";
+      document.getElementById("startBtn").style.display = "block";
+    }
+
+    function restartQuiz() {
+      renderQuiz(questionsData);
+      document.getElementById("restart").style.display = "none";
+      document.getElementById("score").innerHTML = "";
+    }
+
+    function renderQuiz(questions) {
+      score = 0;
+      answered = 0;
+
+      const quizDiv = document.getElementById("quiz");
+      quizDiv.innerHTML = "";
+
+      quizStartTime = Date.now();
+      startGlobalTimer();
+
+      questions = shuffle([...questions]);
+
+      questions.forEach((q, index) => {
+        const container = document.createElement("div");
+        container.className = "question";
+
+        const questionText = document.createElement("p");
+        questionText.textContent = `${index + 1}. ${q.text}`;
+        container.appendChild(questionText);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "options";
+
+        const shuffledOptions = shuffle([...q.options]);
+
+        shuffledOptions.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.textContent = opt;
+
+          btn.onclick = () => {
+            lockQuestion(container, q, opt, btn);
+          };
+
+          optionsDiv.appendChild(btn);
+        });
+
+        container.appendChild(optionsDiv);
+        quizDiv.appendChild(container);
+      });
+    }
+
+    function startGlobalTimer() {
+      clearInterval(timerInterval);
+
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - quizStartTime) / 1000);
+
+        const hrs = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+        const secs = String(elapsed % 60).padStart(2, '0');
+
+        document.getElementById("timerDisplay").textContent =
+          `⏳ Time: ${hrs}:${mins}:${secs}`;
+      }, 1000);
+    }
+
+    function lockQuestion(container, question, selected, selectedBtn) {
+      if (container.dataset.answered) return;
+      container.dataset.answered = true;
+
+      const buttons = container.querySelectorAll("button");
+
+      selectedBtn.style.background = "#007bff";
+      selectedBtn.style.color = "white";
+
+      buttons.forEach(btn => btn.disabled = true);
+
+      const result = document.createElement("p");
+      result.className = "result";
+
+      if (selected === question.answer) {
+        result.textContent = `✅ Correct!`;
+        result.style.color = "green";
+        score++;
+      } else {
+        result.textContent = `❌ Incorrect.`;
+        result.style.color = "red";
+      }
+
+      buttons.forEach(btn => {
+        if (btn.textContent === question.answer) {
+          btn.style.background = "#28a745";
+          btn.style.color = "white";
+        }
+      });
+
+      const explanation = document.createElement("p");
+      explanation.innerHTML = `<strong>Correct Answer:</strong> ${question.answer}<br>
+                               <strong>Explanation:</strong> ${question.explanation}`;
+
+      container.appendChild(result);
+      container.appendChild(explanation);
+
+      answered++;
+
+      if (answered === questionsData.length) {
+        clearInterval(timerInterval);
+
+        const totalTime = Math.floor((Date.now() - quizStartTime) / 1000);
+        const hrs = String(Math.floor(totalTime / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((totalTime % 3600) / 60)).padStart(2, '0');
+        const secs = String(totalTime % 60).padStart(2, '0');
+
+        document.getElementById("score").textContent =
+          `Final Score: ${score} / ${questionsData.length}  
+           Total Time Taken: ${hrs}:${mins}:${secs}`;
+
+        document.getElementById("restart").style.display = "block";
+      }
+    }
+  </script>
+
+</body>
+</html>
