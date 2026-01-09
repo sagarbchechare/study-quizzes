@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Science Quiz</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h1 {
+      color: #2e8b57;
+      text-align: center;
+    }
+
+    #timerDisplay {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #d9534f;
+      margin: 15px 0;
+      display: none;
+    }
+
+    #startBtn, #endQuizBtn {
+      display: block;
+      margin: 20px auto;
+      padding: 12px 25px;
+      font-size: 18px;
+      background: #2e8b57;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #startBtn:hover, #endQuizBtn:hover {
+      background: #246b45;
+    }
+
+    .question {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .options button {
+      width: 100%;
+      margin: 6px 0;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #ffffff;
+      cursor: pointer;
+    }
+
+    .options button:disabled {
+      background: #e0e0e0;
+      cursor: not-allowed;
+    }
+
+    .result {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    #score {
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
+      color: #2e8b57;
+    }
+
+    #restart {
+      display: none;
+      margin: 30px auto;
+      padding: 12px 20px;
+      font-size: 18px;
+      background: #2e8b57;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 200px;
+      display: block;
+    }
+
+    #restart:hover {
+      background: #246b45;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      .options button { font-size: 15px; padding: 10px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Science Quiz</h1>
+
+  <button id="startBtn">Start Quiz</button>
+
+  <div id="timerDisplay">⏳ Time: 00:00:00</div>
+
+  <button id="endQuizBtn" style="display:none;">End Quiz</button>
+
+  <div id="quiz"></div>
+  <div id="score"></div>
+
+  <button id="restart" style="display:none;">Restart Quiz</button>
+
+
+  <script>
+    let score = 0;
+    let answered = 0;
+    let quizStartTime = 0;
+    let timerInterval;
+
+    const questionsData = [
+        {
+    "text": "What is the main source of light on Earth?",
+    "options": ["Moon", "Stars", "Sun", "Fire"],
+    "answer": "Sun",
+    "explanation": "The Sun is the primary natural source of light and energy for Earth."
+  },
+  {
+    "text": "Which of the following is a luminous object?",
+    "options": ["Mirror", "Moon", "Candle", "Book"],
+    "answer": "Candle",
+    "explanation": "A luminous object produces its own light. A candle flame emits light, while mirrors and the moon only reflect light."
+  },
+  {
+    "text": "Light travels in ________ lines.",
+    "options": ["Curved", "Straight", "Zigzag", "Circular"],
+    "answer": "Straight",
+    "explanation": "Light travels in straight lines, which is called rectilinear propagation of light."
+  },
+  {
+    "text": "A shadow is formed when light is ________ by an opaque object.",
+    "options": ["Reflected", "Refracted", "Blocked", "Absorbed"],
+    "answer": "Blocked",
+    "explanation": "Shadows are formed when an opaque object blocks the path of light, preventing it from reaching the surface behind the object."
+  },
+  {
+    "text": "Which type of object allows light to pass through it completely?",
+    "options": ["Opaque", "Translucent", "Transparent", "Luminous"],
+    "answer": "Transparent",
+    "explanation": "Transparent objects like clear glass allow light to pass through completely, making objects visible through them clearly."
+  },
+  {
+    "text": "The phenomenon where light bounces back from a surface is called:",
+    "options": ["Refraction", "Reflection", "Absorption", "Dispersion"],
+    "answer": "Reflection",
+    "explanation": "Reflection is the bouncing back of light when it strikes a surface."
+  },
+  {
+    "text": "Which surface reflects light the best?",
+    "options": ["Rough wooden surface", "Plain mirror", "Wall painted white", "Paper"],
+    "answer": "Plain mirror",
+    "explanation": "A plain mirror has a smooth, polished surface that reflects light regularly and produces the clearest reflection."
+  },
+  {
+    "text": "An object that does not allow any light to pass through it is called:",
+    "options": ["Transparent", "Translucent", "Opaque", "Luminous"],
+    "answer": "Opaque",
+    "explanation": "Opaque objects do not allow light to pass through them. Examples include wood, metal, and stone."
+  },
+  {
+    "text": "Frosted glass is an example of a ________ object.",
+    "options": ["Transparent", "Opaque", "Translucent", "Luminous"],
+    "answer": "Translucent",
+    "explanation": "Translucent objects like frosted glass allow light to pass through partially but objects cannot be seen clearly through them."
+  },
+  {
+    "text": "When light falls on a mirror, the angle of incidence is ________ the angle of reflection.",
+    "options": ["Greater than", "Less than", "Equal to", "Double of"],
+    "answer": "Equal to",
+    "explanation": "According to the first law of reflection, the angle of incidence is always equal to the angle of reflection."
+  },
+  {
+    "text": "A pinhole camera produces an image that is:",
+    "options": ["Upright and magnified", "Inverted and real", "Virtual and upright", "Magnified and virtual"],
+    "answer": "Inverted and real",
+    "explanation": "A pinhole camera produces an inverted (upside down) and real image because light travels in straight lines from the object through the pinhole."
+  },
+  {
+    "text": "The splitting of white light into seven colors is called:",
+    "options": ["Reflection", "Refraction", "Dispersion", "Diffraction"],
+    "answer": "Dispersion",
+    "explanation": "Dispersion is the phenomenon of splitting white light into its seven constituent colors (VIBGYOR - Violet, Indigo, Blue, Green, Yellow, Orange, Red)."
+  },
+  {
+    "text": "A rainbow is formed due to:",
+    "options": ["Reflection only", "Refraction only", "Dispersion of sunlight through water droplets", "Absorption of light"],
+    "answer": "Dispersion of sunlight through water droplets",
+    "explanation": "Rainbows are formed when sunlight undergoes dispersion, refraction, and internal reflection in water droplets in the atmosphere."
+  },
+  {
+    "text": "Which color of light bends the most when passing through a prism?",
+    "options": ["Red", "Violet", "Green", "Yellow"],
+    "answer": "Violet",
+    "explanation": "Violet light has the shortest wavelength and the highest frequency, so it bends the most during dispersion through a prism."
+  },
+  {
+    "text": "The image formed by a plane mirror is:",
+    "options": ["Real and inverted", "Virtual and laterally inverted", "Real and upright", "Virtual and magnified"],
+    "answer": "Virtual and laterally inverted",
+    "explanation": "A plane mirror forms a virtual, upright, and laterally inverted image at the same distance behind the mirror as the object is in front (left appears right and vice versa)."
+  },
+  {
+    "text": "If a ray of light falls perpendicular to a mirror surface, what is the angle of reflection?",
+    "options": ["90°", "45°", "0°", "180°"],
+    "answer": "0°",
+    "explanation": "When light falls perpendicular to a mirror (angle of incidence = 0° from the normal), it reflects back along the same path with angle of reflection = 0°."
+  },
+  {
+    "text": "Light takes approximately how much time to travel from the Sun to Earth?",
+    "options": ["8 seconds", "8 minutes", "8 hours", "8 days"],
+    "answer": "8 minutes",
+    "explanation": "Light travels at approximately 3 × 10⁸ m/s and takes about 8 minutes and 20 seconds to cover the approximately 150 million km distance from Sun to Earth."
+  },
+  {
+    "text": "Which of these is NOT a property of light?",
+    "options": ["It travels in straight lines", "It needs a medium to travel", "It can be reflected", "It can be refracted"],
+    "answer": "It needs a medium to travel",
+    "explanation": "Light does not need a medium to travel. It can travel through vacuum (empty space), which is how sunlight reaches Earth. Sound, however, needs a medium."
+  },
+  {
+    "text": "The bending of light when it passes from one medium to another is called:",
+    "options": ["Reflection", "Refraction", "Dispersion", "Absorption"],
+    "answer": "Refraction",
+    "explanation": "Refraction is the bending of light as it passes from one transparent medium to another due to change in the speed of light in different media."
+  },
+  {
+    "text": "A pencil partially immersed in water appears bent due to:",
+    "options": ["Reflection", "Refraction", "Dispersion", "Diffraction"],
+    "answer": "Refraction",
+    "explanation": "The pencil appears bent due to refraction of light as it passes from water to air. Light bends at the water-air boundary, making the submerged part appear shifted."
+  },
+  {
+    "text": "If the speed of light in vacuum is 3 × 10⁸ m/s, how far will light travel in 5 seconds?",
+    "options": ["15 × 10⁸ m", "3 × 10⁸ m", "6 × 10⁸ m", "1.5 × 10⁹ m"],
+    "answer": "1.5 × 10⁹ m",
+    "explanation": "Distance = Speed × Time = (3 × 10⁸ m/s) × 5 s = 15 × 10⁸ m = 1.5 × 10⁹ m."
+  },
+  {
+    "text": "A light ray strikes a plane mirror at an angle of incidence of 35°. What is the angle of reflection?",
+    "options": ["35°", "55°", "70°", "90°"],
+    "answer": "35°",
+    "explanation": "By the law of reflection, the angle of incidence equals the angle of reflection. Therefore, angle of reflection = 35°."
+  },
+  {
+    "text": "If an object is placed 10 cm in front of a plane mirror, how far is the image from the object?",
+    "options": ["5 cm", "10 cm", "20 cm", "15 cm"],
+    "answer": "20 cm",
+    "explanation": "The image in a plane mirror is formed at the same distance behind the mirror as the object is in front of it. Object is 10 cm in front, image is 10 cm behind. Total distance between object and image = 10 cm + 10 cm = 20 cm."
+  },
+  {
+    "text": "A person is standing 2 meters away from a plane mirror. If the person walks 0.5 meters towards the mirror, what will be the new distance between the person and their image?",
+    "options": ["1.5 m", "3 m", "2.5 m", "4 m"],
+    "answer": "3 m",
+    "explanation": "After walking 0.5 m towards the mirror, the person is now 2 - 0.5 = 1.5 m from the mirror. The image is also 1.5 m behind the mirror. Total distance between person and image = 1.5 m + 1.5 m = 3 m."
+  },
+  {
+    "text": "A light ray travels 6 × 10⁸ meters in 2 seconds. What is the speed of light in this calculation?",
+    "options": ["3 × 10⁸ m/s", "12 × 10⁸ m/s", "6 × 10⁸ m/s", "4 × 10⁸ m/s"],
+    "answer": "3 × 10⁸ m/s",
+    "explanation": "Speed = Distance ÷ Time = (6 × 10⁸ m) ÷ 2 s = 3 × 10⁸ m/s, which is the speed of light in vacuum."
+  }
+    ];
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor((i + 1) * Math.random());
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    document.getElementById("startBtn").onclick = startQuiz;
+    document.getElementById("endQuizBtn").onclick = endQuiz;
+    document.getElementById("restart").onclick = restartQuiz;
+
+    function startQuiz() {
+      document.getElementById("startBtn").style.display = "none";
+      document.getElementById("endQuizBtn").style.display = "block";
+      document.getElementById("timerDisplay").style.display = "block";
+
+      renderQuiz(questionsData);
+    }
+
+    function endQuiz() {
+      clearInterval(timerInterval);
+
+      document.getElementById("quiz").innerHTML = "";
+      document.getElementById("score").innerHTML = "";
+      document.getElementById("timerDisplay").style.display = "none";
+      document.getElementById("endQuizBtn").style.display = "none";
+      document.getElementById("restart").style.display = "none";
+      document.getElementById("startBtn").style.display = "block";
+    }
+
+    function restartQuiz() {
+      renderQuiz(questionsData);
+      document.getElementById("restart").style.display = "none";
+      document.getElementById("score").innerHTML = "";
+    }
+
+    function renderQuiz(questions) {
+      score = 0;
+      answered = 0;
+
+      const quizDiv = document.getElementById("quiz");
+      quizDiv.innerHTML = "";
+
+      quizStartTime = Date.now();
+      startGlobalTimer();
+
+      questions = shuffle([...questions]);
+
+      questions.forEach((q, index) => {
+        const container = document.createElement("div");
+        container.className = "question";
+
+        const questionText = document.createElement("p");
+        questionText.textContent = `${index + 1}. ${q.text}`;
+        container.appendChild(questionText);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "options";
+
+        const shuffledOptions = shuffle([...q.options]);
+
+        shuffledOptions.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.textContent = opt;
+
+          btn.onclick = () => {
+            lockQuestion(container, q, opt, btn);
+          };
+
+          optionsDiv.appendChild(btn);
+        });
+
+        container.appendChild(optionsDiv);
+        quizDiv.appendChild(container);
+      });
+    }
+
+    function startGlobalTimer() {
+      clearInterval(timerInterval);
+
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - quizStartTime) / 1000);
+
+        const hrs = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+        const secs = String(elapsed % 60).padStart(2, '0');
+
+        document.getElementById("timerDisplay").textContent =
+          `⏳ Time: ${hrs}:${mins}:${secs}`;
+      }, 1000);
+    }
+
+    function lockQuestion(container, question, selected, selectedBtn) {
+      if (container.dataset.answered) return;
+      container.dataset.answered = true;
+
+      const buttons = container.querySelectorAll("button");
+
+      selectedBtn.style.background = "#007bff";
+      selectedBtn.style.color = "white";
+
+      buttons.forEach(btn => btn.disabled = true);
+
+      const result = document.createElement("p");
+      result.className = "result";
+
+      if (selected === question.answer) {
+        result.textContent = `✅ Correct!`;
+        result.style.color = "green";
+        score++;
+      } else {
+        result.textContent = `❌ Incorrect.`;
+        result.style.color = "red";
+      }
+
+      buttons.forEach(btn => {
+        if (btn.textContent === question.answer) {
+          btn.style.background = "#28a745";
+          btn.style.color = "white";
+        }
+      });
+
+      const explanation = document.createElement("p");
+      explanation.innerHTML = `<strong>Correct Answer:</strong> ${question.answer}<br>
+                               <strong>Explanation:</strong> ${question.explanation}`;
+
+      container.appendChild(result);
+      container.appendChild(explanation);
+
+      answered++;
+
+      if (answered === questionsData.length) {
+        clearInterval(timerInterval);
+
+        const totalTime = Math.floor((Date.now() - quizStartTime) / 1000);
+        const hrs = String(Math.floor(totalTime / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((totalTime % 3600) / 60)).padStart(2, '0');
+        const secs = String(totalTime % 60).padStart(2, '0');
+
+        document.getElementById("score").textContent =
+          `Final Score: ${score} / ${questionsData.length}  
+           Total Time Taken: ${hrs}:${mins}:${secs}`;
+
+        document.getElementById("restart").style.display = "block";
+      }
+    }
+  </script>
+
+</body>
+</html>
